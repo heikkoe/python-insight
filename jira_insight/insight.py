@@ -99,9 +99,11 @@ class Insight:
     def get_object_schemas(self):
         api_path = "/objectschema/list"
         object_schemas_json_request = self.do_api_request(api_path)
-        object_schemas_json = object_schemas_json_request.get("objectschemas", {})
+        object_schemas_json = object_schemas_json_request.get("values", {})
+        
         object_schemas = {}
         logging.info("Loading object schemas")
+        logging.info(object_schemas_json_request)
         object_schemas_count = len(object_schemas_json)
         index = 1
         for object_schema_json in object_schemas_json:
@@ -120,6 +122,8 @@ class Insight:
 
     def do_api_request(self, path, method="get", json=None, params=None):
         path = self.insight_api_url + path
+        #logging.DEBUG("Using path: " + path)
+
         if method == "get":
             request = self.retry_session.get(path, params=params)
         elif method == "post":
@@ -229,8 +233,11 @@ class InsightObjectAttribute:
         if self.object_type_attribute.attribute_type in ["User", "Object", "Select"]:
             value = []
             for value_json in self.values_json:
-                if self.object_type_attribute.attribute_type in ["User", "Select"]:
+                if self.object_type_attribute.attribute_type == "Select":
                     value.append(value_json.get("value", None))
+                    continue
+                if self.object_type_attribute.attribute_type == "User":
+                    value.append(value_json.get("user", None))
                     continue
                 if self.object_type_attribute.attribute_type == "Object":
                     insight_object = InsightObject(
@@ -252,7 +259,10 @@ class InsightObjectAttribute:
             ]:
                 return value_json.get("value", None)
             if self.object_type_attribute.attribute_type == "Status":
-                return value_json.get("status", None)
+                value = value_json.get("status", None)
+                if value is not None:
+                    value = value.get("name", None)
+                return value
             if self.object_type_attribute.attribute_type == "Integer":
                 return int(value_json.get("value", None))
             if self.object_type_attribute.attribute_type == "Double":
@@ -262,7 +272,7 @@ class InsightObjectAttribute:
 
     def __str__(self):
         return f"InsightObjectAttribute: {self.name}, Value: {self.value}"
-
+    
 
 class InsightObjectSchema:
     def __init__(self, insight, insight_id):
@@ -306,16 +316,16 @@ class InsightObjectSchema:
     def __str__(self):
         return f"InsightObjectSchema: {self.name} ({self.key})"
 
-    def search_iql(self, iql=None):
-        api_path = "/iql/objects"
+    def search_aql(self, aql=None):
+        api_path = "/aql/objects"
         params = {
             "objectSchemaId": self.id,
             "resultPerPage": 500,
             "includeTypeAttributes": "true",
             "page": 1,
         }
-        if iql is not None:
-            params["iql"] = iql
+        if aql is not None:
+            params["qlQuery"] = aql
 
         while True:
             search_results = self.insight.do_api_request(api_path, params=params)
@@ -431,7 +441,7 @@ if __name__ == "__main__":
     # Poor man's debugging
     insight = Insight(os.environ["INSIGHT_URL"], None, webbrowser_auth=True)
     insight_object_schema = InsightObjectSchema(insight, 12)
-    object_gen = insight_object_schema.search_iql(
+    object_gen = insight_object_schema.search_aql(
         'objectType IN ("Desktop","Laptop","Tablet","Virtuelle Maschine") and Seriennummer = 052211303453dfgdfgdfg'
     )
 
