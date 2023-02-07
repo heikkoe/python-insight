@@ -1,6 +1,6 @@
-# API client for Jira Insight
+# API client for Jira Assets
 
-This is a API client to access data in the Jira app [Insight](https://marketplace.atlassian.com/apps/1212137/insight-asset-management).
+This is a API client to access data in the Jira Service Management Assets [JSM Assets](https://support.atlassian.com/jira-service-management-cloud/docs/manage-your-assets-and-configuration-items-with-insight/).
 
 ## Usage
 
