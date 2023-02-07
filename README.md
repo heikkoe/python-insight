@@ -15,7 +15,7 @@ from jira_insight import *
 # Initialize the main Insight object with the URL and credentials for Basic Auth
 insight = Insight("https://jira.example.com", ("USERNAME", "PASSWORD"))
 
-TODO: Build in or mention the retrieval of workspace id that is now mandatory
+# TODO: Build in or mention the retrieval of workspace id that is now mandatory
 insight.insight_api_url = "https://api.atlassian.com/jsm/assets/workspace/{}/v1".format(workspaceId)
 
 # Get a specific object schema by ID
